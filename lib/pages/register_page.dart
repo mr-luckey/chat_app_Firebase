@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   late double _width;
   late Authprovider _auth;
   late DatabaseService _db;
-  late CloudStorageSercive _cloudStorageSercive;
+  late CloudStorageSercive _cloudStorage;
   String? _email;
   String? _password;
   String? _name;
@@ -37,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     _auth = Provider.of<Authprovider>(context);
     _db = GetIt.instance.get<DatabaseService>();
-    _cloudStorageSercive = GetIt.instance.get<CloudStorageSercive>();
+    _cloudStorage = GetIt.instance.get<CloudStorageSercive>();
 
     _height = MediaQuery.of(context).size.height;
     _width = MediaQuery.of(context).size.width;
@@ -95,9 +96,12 @@ class _RegisterPageState extends State<RegisterPage> {
             String? _uid = await _auth.registerUser(_email!, _password!);
             print(_uid);
             String? _imageURL =
-                await _cloudStorageSercive.saveUserImage(_uid!, _profileImage!);
+                await _cloudStorage.saveUserImage(_uid!, _profileImage!);
 
             await _db.createUser(_uid, _email!, _name!, _imageURL!);
+            await _auth.logout();
+            await _auth.registerUser(_email!, _password!);
+            Get.back();
           }
         });
   }

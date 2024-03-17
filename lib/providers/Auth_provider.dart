@@ -23,18 +23,19 @@ class Authprovider extends ChangeNotifier {
       if (_user != null) {
         _databaseService.updateUserLastSeenTime(_user.uid);
         _databaseService.getUser(_user.uid).then((_snapshot) {
+          print("testing user function");
           Map<String, dynamic> _userData =
-              _snapshot!.data()! as Map<String, dynamic>;
+              _snapshot.data()! as Map<String, dynamic>;
           user = ChatUser.fromJson({
-            "name": _userData['name'],
-            "uid": _userData['uid'],
-            "email": _userData['email'],
-            "imageUrl": _userData['imageUrl'],
-            "lastActive": _userData['lastActive'],
+            "name": _userData["name"],
+            "uid": _user.uid,
+            "email": _userData["email"],
+            "image": _userData["image"],
+            "lastActive": _userData["lastActive"],
           });
           print("clicked but not working");
-          Get.toNamed(AppRoutes.home);
-        });
+        }); //temporary for running the code issue is the function is running but not completing the function error some requested docs not found
+        Get.toNamed(AppRoutes.home);
         // _navigationService.navigateTo('/login');
       } else {
         Get.toNamed(AppRoutes.login);
