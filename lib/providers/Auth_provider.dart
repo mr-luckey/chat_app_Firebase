@@ -28,7 +28,7 @@ class Authprovider extends ChangeNotifier {
               _snapshot.data()! as Map<String, dynamic>;
           user = ChatUser.fromJson({
             "name": _userData["name"],
-            "uid": _userData["uid"],
+            // "uid": _userData["uid"],
             "email": _userData["email"],
             "image": _userData["image"],
             "lastActive": _userData["lastActive"],
@@ -74,6 +74,7 @@ class Authprovider extends ChangeNotifier {
     } catch (e) {
       return e.toString();
     }
+    return null;
   }
 
   Future<void> logout() async {
