@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get_connect/http/src/_http/_html/_file_decoder_html.dart';
 
 // ignore: constant_identifier_names
-const String USER_COLLECTION = 'users';
+const String USER_COLLECTION = 'u sers';
 
 class CloudStorageSercive {
   final FirebaseStorage _storage = FirebaseStorage.instance;
