@@ -1,5 +1,6 @@
 import 'package:chat_app/Wiget/Custom_listview.dart';
 import 'package:chat_app/Wiget/top_bar.dart';
+import 'package:chat_app/models/chat.dart';
 import 'package:chat_app/providers/chats_page_provide.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,37 @@ class _ChatsPageState extends State<ChatsPage> {
   }
 
   Widget _chatsList() {
-    return Expanded(child: _chatTile());
+    List<chat>? _chats = _pageProvider.chats;
+    print("here are chats");
+    print(_chats);
+    return (() {
+      if (_chats != null) {
+        if (_chats.length != 0) {
+          return ListView.builder(
+            itemCount: _chats.length,
+            itemBuilder: (BuildContext _context, int _index) {
+              return _chatTile();
+            },
+          );
+        } else {
+          return Center(
+            child: Text(
+              "No chats",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+              ),
+            ),
+          );
+        }
+      } else {
+        return Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        );
+      }
+    })();
   }
 
   Widget _chatTile() {

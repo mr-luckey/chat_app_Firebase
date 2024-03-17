@@ -23,18 +23,18 @@ class DatabaseService {
     } catch (e) {}
   }
 
-  Future<DocumentSnapshot> getUser(String _uid) {
+  Future<DocumentSnapshot> getUser(_uid) {
     return _db.collection(USER_COLLECTION).doc(_uid).get();
   }
 
-  Stream<QuerySnapshot> getChatsForUser(String _uid) {
+  Stream<QuerySnapshot> getChatsForUser(_uid) {
     return _db
         .collection(CHAT_COLLECTION)
         .where("members", arrayContains: _uid)
         .snapshots();
   }
 
-  Future<QuerySnapshot> getLastMessage(String _chatID) {
+  Future<QuerySnapshot> getLastMessage(_chatID) {
     return _db
         .doc(_chatID)
         .collection(MESSAGE_COLLECTION)

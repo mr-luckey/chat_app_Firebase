@@ -18,7 +18,7 @@ class Authprovider extends ChangeNotifier {
     _auth = FirebaseAuth.instance;
     _navigationService = GetIt.instance.get<NavigationService>();
     _databaseService = GetIt.instance.get<DatabaseService>();
-    _auth.signOut();
+    // _auth.signOut();
     _auth.authStateChanges().listen((_user) {
       if (_user != null) {
         _databaseService.updateUserLastSeenTime(_user.uid);
@@ -28,7 +28,7 @@ class Authprovider extends ChangeNotifier {
               _snapshot.data()! as Map<String, dynamic>;
           user = ChatUser.fromJson({
             "name": _userData["name"],
-            "uid": _user.uid,
+            "uid": _userData["uid"],
             "email": _userData["email"],
             "image": _userData["image"],
             "lastActive": _userData["lastActive"],
