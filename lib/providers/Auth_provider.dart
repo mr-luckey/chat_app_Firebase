@@ -1,80 +1,72 @@
-import 'package:chat_app/models/routes.dart';
-import 'package:chat_app/pages/home_page.dart';
+import 'package:chat_app/models/chat_user.dart';
 import 'package:chat_app/services/database_service.dart';
 import 'package:chat_app/services/navigation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
-import '../models/chat_user.dart';
-
-class Authprovider extends ChangeNotifier {
+class AuthenticationProvider extends ChangeNotifier {
   late final FirebaseAuth _auth;
   late final NavigationService _navigationService;
   late final DatabaseService _databaseService;
+
   late ChatUser user;
-  Authprovider() {
+
+  AuthenticationProvider() {
     _auth = FirebaseAuth.instance;
     _navigationService = GetIt.instance.get<NavigationService>();
     _databaseService = GetIt.instance.get<DatabaseService>();
-    // _auth.signOut();
+
     _auth.authStateChanges().listen((_user) {
       if (_user != null) {
         _databaseService.updateUserLastSeenTime(_user.uid);
-        _databaseService.getUser(_user.uid).then((_snapshot) {
-          print("testing user function");
-          Map<String, dynamic> _userData =
-              _snapshot.data()! as Map<String, dynamic>;
-          user = ChatUser.fromJson({
-            "name": _userData["name"],
-            // "uid": _userData["uid"],
-            "email": _userData["email"],
-            "image": _userData["image"],
-            "lastActive": _userData["lastActive"],
-          });
-          print("clicked but not working");
-        }); //temporary for running the code issue is the function is running but not completing the function error some requested docs not found
-        Get.toNamed(AppRoutes.home);
-        // _navigationService.navigateTo('/login');
+        _databaseService.getUser(_user.uid).then(
+          (_snapshot) {
+            Map<String, dynamic> _userData =
+                _snapshot.data()! as Map<String, dynamic>;
+            user = ChatUser.fromJSON(
+              {
+                "uid": _user.uid,
+                "name": _userData["name"],
+                "email": _userData["email"],
+                "last_active": _userData["last_active"],
+                "image": _userData["image"],
+              },
+            );
+            _navigationService.removeAndNavigateToRoute('/home');
+          },
+        );
       } else {
-        Get.toNamed(AppRoutes.login);
-        print("User is  logged o");
-        // _navigationService.navigateTo('/home');
+        if (_navigationService.getCurrentRoute() != '/login') {
+          _navigationService.removeAndNavigateToRoute('/login');
+        }
       }
     });
   }
 
-  Future<void> login(String _email, String _password) async {
+  Future<void> loginUsingEmailAndPassword(
+      String _email, String _password) async {
     try {
       await _auth.signInWithEmailAndPassword(
           email: _email, password: _password);
-      print(_auth.currentUser);
-      // _navigationService.navigateTo('/home');
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
-      }
+    } on FirebaseAuthException {
+      print("Error logging user into Firebase");
+    } catch (e) {
+      print(e);
     }
   }
 
-  Future<String?> registerUser(String _email, String _password) async {
+  Future<String?> registerUserUsingEmailAndPassword(
+      String _email, String _password) async {
     try {
       UserCredential _credentials = await _auth.createUserWithEmailAndPassword(
           email: _email, password: _password);
       return _credentials.user!.uid;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        return 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        return 'The account already exists for that email.';
-      }
+    } on FirebaseAuthException {
+      print("Error registering user.");
     } catch (e) {
-      return e.toString();
+      print(e);
     }
-    return null;
   }
 
   Future<void> logout() async {

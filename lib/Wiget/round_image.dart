@@ -2,14 +2,16 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class RoundedImageNetwork extends StatelessWidget {
   final String imagePath;
   final double size;
-  const RoundedImageNetwork(
-      {required key, required this.imagePath, required this.size})
-      : super(key: key);
+
+  RoundedImageNetwork({
+    required Key key,
+    required this.imagePath,
+    required this.size,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,49 +19,56 @@ class RoundedImageNetwork extends StatelessWidget {
       height: size,
       width: size,
       decoration: BoxDecoration(
-          color: Colors.grey,
-          // shape: BoxShape.circle,
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: NetworkImage(imagePath),
-          ),
-          borderRadius: BorderRadius.circular(size)),
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: NetworkImage(imagePath),
+        ),
+        borderRadius: BorderRadius.all(
+          Radius.circular(size),
+        ),
+        color: Colors.black,
+      ),
     );
   }
 }
 
-class RoundedImagefile extends StatelessWidget {
-  final File? image;
+class RoundedImageFile extends StatelessWidget {
+  final File image;
   final double size;
-  const RoundedImagefile(
-      {required Key key, required this.image, required this.size})
-      : super(key: key);
+
+  RoundedImageFile({
+    required Key key,
+    required this.image,
+    required this.size,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: size,
       width: size,
+      height: size,
       decoration: BoxDecoration(
-          color: Colors.grey,
-          // shape: BoxShape.circle,
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage(image!.path!),
-          ),
-          borderRadius: BorderRadius.circular(size)),
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: AssetImage(image.path),
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(size)),
+        color: Colors.black,
+      ),
     );
   }
 }
 
-class roundedImagewithStatus extends RoundedImageNetwork {
+class RoundedImageNetworkWithStatusIndicator extends RoundedImageNetwork {
   final bool isActive;
-  roundedImagewithStatus({
+
+  RoundedImageNetworkWithStatusIndicator({
     required Key key,
     required String imagePath,
     required double size,
     required this.isActive,
   }) : super(key: key, imagePath: imagePath, size: size);
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -73,8 +82,6 @@ class roundedImagewithStatus extends RoundedImageNetwork {
           decoration: BoxDecoration(
             color: isActive ? Colors.green : Colors.red,
             borderRadius: BorderRadius.circular(size),
-            // shape: BoxShape.circle(size),
-            border: Border.all(color: Colors.white, width: 2),
           ),
         ),
       ],

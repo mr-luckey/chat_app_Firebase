@@ -1,150 +1,143 @@
 import 'package:chat_app/Wiget/custom_text_field.dart';
 import 'package:chat_app/Wiget/rounded_btn.dart';
-import 'package:chat_app/models/routes.dart';
-// import 'package:chat_app/constants/parameters.dart';
+import 'package:chat_app/providers/Auth_provider.dart';
 import 'package:chat_app/services/navigation_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-// import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/Auth_provider.dart';
-// import '../controllers/login controller.dart';
-// import '../viewmodels/login_viewmodel.dart';
-
-class LoginView extends StatefulWidget {
+class LoginPage extends StatefulWidget {
   @override
-  State<LoginView> createState() => _LoginViewState();
+  State<StatefulWidget> createState() {
+    return _LoginPageState();
+  }
 }
 
-class _LoginViewState extends State<LoginView> {
-  late double myheight;
-  late double mywidth;
-  final _loginFormKey = GlobalKey<FormState>();
-  late Authprovider _auth;
+class _LoginPageState extends State<LoginPage> {
+  late double _deviceHeight;
+  late double _deviceWidth;
+
+  late AuthenticationProvider _auth;
   late NavigationService _navigation;
-  String? email;
-  String? password;
+
+  final _loginFormKey = GlobalKey<FormState>();
+
+  String? _email;
+  String? _password;
+
   @override
   Widget build(BuildContext context) {
-    myheight = MediaQuery.of(context).size.height;
-    mywidth = MediaQuery.of(context).size.width;
-    _auth = Provider.of<Authprovider>(context);
+    _deviceHeight = MediaQuery.of(context).size.height;
+    _deviceWidth = MediaQuery.of(context).size.width;
+    _auth = Provider.of<AuthenticationProvider>(context);
     _navigation = GetIt.instance.get<NavigationService>();
-
     return _buildUI();
   }
 
   Widget _buildUI() {
     return Scaffold(
       body: Container(
-        height: myheight * .98,
-        width: mywidth * .97,
-        decoration: const BoxDecoration(
-          color:
-              Color.fromRGBO(36, 35, 49, 1.0), // Set scaffold background color
+        padding: EdgeInsets.symmetric(
+          horizontal: _deviceWidth * 0.03,
+          vertical: _deviceHeight * 0.02,
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: mywidth * 0.03, vertical: mywidth * 0.02),
-          // Use mywidth here
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _pagetitle(),
-              SizedBox(
-                height: myheight * 0.04,
-              ),
-              _loginform(),
-              SizedBox(
-                height: myheight * 0.01,
-              ),
-              _loginbtn(),
-              SizedBox(
-                height: myheight * 0.02,
-              ),
-              _registerAccountLink(),
-            ],
-          ),
+        height: _deviceHeight * 0.98,
+        width: _deviceWidth * 0.97,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _pageTitle(),
+            SizedBox(
+              height: _deviceHeight * 0.04,
+            ),
+            _loginForm(),
+            SizedBox(
+              height: _deviceHeight * 0.05,
+            ),
+            _loginButton(),
+            SizedBox(
+              height: _deviceHeight * 0.02,
+            ),
+            _registerAccountLink(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _pagetitle() {
+  Widget _pageTitle() {
     return Container(
-      height: myheight * 0.10,
+      height: _deviceHeight * 0.10,
       child: Text(
-        'chatify',
+        'Chatify',
         style: TextStyle(
-            color: Colors.white, fontSize: 40, fontWeight: FontWeight.w600),
+          color: Colors.white,
+          fontSize: 40,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 
-  Widget _loginform() {
+  Widget _loginForm() {
     return Container(
-      height: myheight * .20,
+      height: _deviceHeight * 0.18,
       child: Form(
-          key: _loginFormKey,
-          child: Column(
-            children: [
-              CustomTextField(
-                  hintText: 'Email',
-                  onSaved: (_value) {
-                    setState(() {
-                      email = _value;
-                    });
-                    // viewModel.username = value;
-                  },
-                  regEx: "",
-                  obscureText: false),
-              CustomTextField(
-                  hintText: 'Password',
-                  onSaved: (_value) {
-                    setState(() {
-                      password = _value;
-                    });
-                    // viewModel.username = value;
-                  },
-                  regEx: r".{8,}",
-                  obscureText: true),
-            ],
-          )),
+        key: _loginFormKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CustomTextFormField(
+                onSaved: (_value) {
+                  setState(() {
+                    _email = _value;
+                  });
+                },
+                regEx:
+                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                hintText: "Email",
+                obscureText: false),
+            CustomTextFormField(
+                onSaved: (_value) {
+                  setState(() {
+                    _password = _value;
+                  });
+                },
+                regEx: r".{8,}",
+                hintText: "Password",
+                obscureText: true),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _loginbtn() {
-    return Roundedbtn(
-        name: 'login',
-        height: myheight * 0.065,
-        width: mywidth * 0.65,
-        onPressed: () {
-          if (_loginFormKey.currentState!.validate()) {
-            _loginFormKey.currentState!.save();
-            print("Email: $email, Password: $password");
-            _auth.login(email!, password!);
-          }
-        });
+  Widget _loginButton() {
+    return RoundedButton(
+      name: "Login",
+      height: _deviceHeight * 0.065,
+      width: _deviceWidth * 0.65,
+      onPressed: () {
+        if (_loginFormKey.currentState!.validate()) {
+          _loginFormKey.currentState!.save();
+          _auth.loginUsingEmailAndPassword(_email!, _password!);
+        }
+      },
+    );
   }
 
   Widget _registerAccountLink() {
     return GestureDetector(
-      onTap: () {
-        print('clicked');
-      },
-      child: GestureDetector(
-        onTap: () {
-          Get.toNamed(AppRoutes.register);
-        },
-        child: Container(
-          child: Text(
-            'Don\'t have an account?',
-            style: TextStyle(color: Colors.blueAccent),
+      onTap: () => _navigation.navigateToRoute('/register'),
+      child: Container(
+        child: Text(
+          'Don\'t have an account?',
+          style: TextStyle(
+            color: Colors.blueAccent,
           ),
         ),
       ),

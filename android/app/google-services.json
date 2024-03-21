@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "907938825939",
-    "project_id": "chatify-app-fde98",
-    "storage_bucket": "chatify-app-fde98.appspot.com"
+    "project_number": "975582942991",
+    "project_id": "chaty-app-4dea3",
+    "storage_bucket": "chaty-app-4dea3.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:907938825939:android:043f720c0619de09f0b626",
+        "mobilesdk_app_id": "1:975582942991:android:6a5621d712301ddd3d507a",
         "android_client_info": {
           "package_name": "com.naseer.chat_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC8i6pKpQXpju6h992wCkT6Js_GtTB-ClM"
+          "current_key": "AIzaSyDKvVw6_ZoewJo3mxqs9RMeE8vRtrMEn0o"
         }
       ],
       "services": {

@@ -3,46 +3,47 @@ import 'dart:io';
 import 'package:chat_app/Wiget/custom_text_field.dart';
 import 'package:chat_app/Wiget/round_image.dart';
 import 'package:chat_app/Wiget/rounded_btn.dart';
+import 'package:chat_app/providers/Auth_provider.dart';
 import 'package:chat_app/services/cloud_storage_service.dart';
+import 'package:chat_app/services/database_service.dart';
 import 'package:chat_app/services/mediac_service.dart';
+import 'package:chat_app/services/navigation_service.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/Auth_provider.dart';
-import '../services/database_service.dart';
-
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
-
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<StatefulWidget> createState() {
+    return _RegisterPageState();
+  }
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  late double _height;
-  File? _profileImage;
-  late double _width;
-  late Authprovider _auth;
+  late double _deviceHeight;
+  late double _deviceWidth;
+
+  late AuthenticationProvider _auth;
   late DatabaseService _db;
-  late CloudStorageSercive _cloudStorage;
+  late CloudStorageService _cloudStorage;
+  late NavigationService _navigation;
+
   String? _email;
   String? _password;
   String? _name;
+  File? _profileImage;
+
   final _registerFormKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
-    _auth = Provider.of<Authprovider>(context);
+    _auth = Provider.of<AuthenticationProvider>(context);
     _db = GetIt.instance.get<DatabaseService>();
-    _cloudStorage = GetIt.instance.get<CloudStorageSercive>();
-
-    _height = MediaQuery.of(context).size.height;
-    _width = MediaQuery.of(context).size.width;
-
+    _cloudStorage = GetIt.instance.get<CloudStorageService>();
+    _navigation = GetIt.instance.get<NavigationService>();
+    _deviceHeight = MediaQuery.of(context).size.height;
+    _deviceWidth = MediaQuery.of(context).size.width;
     return _buildUI();
   }
 
@@ -50,65 +51,69 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        height: _height * .98,
-        width: _width * .97,
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(36, 35, 49, 1.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: _deviceWidth * 0.03,
+          vertical: _deviceHeight * 0.02,
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: _width * 0.03, vertical: _width * 0.02),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _profileImageField(),
-              SizedBox(
-                height: _height * 0.05,
-              ),
-              _registerFrom(),
-              // _pageTitle(),
-              SizedBox(
-                height: _height * 0.05,
-              ),
-
-              _registerButton(),
-              SizedBox(
-                height: _height * 0.02,
-              )
-            ],
-          ),
+        height: _deviceHeight * 0.98,
+        width: _deviceWidth * 0.97,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _profileImageField(),
+            SizedBox(
+              height: _deviceHeight * 0.05,
+            ),
+            _registerForm(),
+            SizedBox(
+              height: _deviceHeight * 0.05,
+            ),
+            _registerButton(),
+            SizedBox(
+              height: _deviceHeight * 0.02,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _registerButton() {
-    return Roundedbtn(
-        name: "Register",
-        height: _height * 0.065,
-        width: _width * 0.65,
-        onPressed: () async {
-          if (_registerFormKey.currentState!.validate() &&
-              _profileImage != null) {
-            _registerFormKey.currentState!.save();
-            String? _uid = await _auth.registerUser(_email!, _password!);
-            print(_uid);
-            String? _imageURL =
-                await _cloudStorage.saveUserImage(_uid!, _profileImage!);
-
-            await _db.createUser(_uid, _email!, _name!, _imageURL!);
-            await _auth.logout();
-            await _auth.registerUser(_email!, _password!);
-            Get.back();
-          }
-        });
+  Widget _profileImageField() {
+    return GestureDetector(
+      onTap: () {
+        GetIt.instance.get<MediaService>().pickImageFromLibrary().then(
+          (_file) {
+            setState(
+              () {
+                _profileImage = _file as File?;
+              },
+            );
+          },
+        );
+      },
+      child: () {
+        if (_profileImage != null) {
+          return RoundedImageFile(
+            key: UniqueKey(),
+            image: _profileImage!,
+            size: _deviceHeight * 0.15,
+          );
+        } else {
+          return RoundedImageNetwork(
+            key: UniqueKey(),
+            imagePath: "https://i.pravatar.cc/150?img=65",
+            size: _deviceHeight * 0.15,
+          );
+        }
+      }(),
+    );
   }
 
-  Widget _registerFrom() {
+  Widget _registerForm() {
     return Container(
-      height: _height * 0.35,
+      height: _deviceHeight * 0.35,
       child: Form(
         key: _registerFormKey,
         child: Column(
@@ -116,32 +121,33 @@ class _RegisterPageState extends State<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CustomTextField(
-                hintText: 'name',
+            CustomTextFormField(
                 onSaved: (_value) {
                   setState(() {
                     _name = _value;
                   });
                 },
                 regEx: r'.{8,}',
+                hintText: "Name",
                 obscureText: false),
-            CustomTextField(
-                hintText: 'Email',
+            CustomTextFormField(
                 onSaved: (_value) {
                   setState(() {
                     _email = _value;
                   });
                 },
-                regEx: '',
+                regEx:
+                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                hintText: "Email",
                 obscureText: false),
-            CustomTextField(
-                hintText: 'Password',
+            CustomTextFormField(
                 onSaved: (_value) {
                   setState(() {
                     _password = _value;
                   });
                 },
-                regEx: r'.{8,}',
+                regEx: r".{8,}",
+                hintText: "Password",
                 obscureText: true),
           ],
         ),
@@ -149,108 +155,24 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // Widget _profileImageField() {
-  //   // File? _file;
-  //   return GestureDetector(
-  //     onTap: () async {
-  //       final _files =
-  //           await GetIt.instance.get<MediaService>().pickImageFromLibrary();
-  //       if (_files != null) {
-  //         setState(() {
-  //           _profileImage = _files as PlatformFile?;
-  //         });
-  //       }
-  //     },
-  //     child: _profileImage != null
-  //         ? RoundedImagefile(
-  //             key: UniqueKey(),
-  //             image: _profileImage!,
-  //             size: _height * 0.15,
-  //           )
-  //         : RoundedImageNetwork(
-  //             key: UniqueKey(),
-  //             imagePath:
-  //                 "https://www.example.com/image.jpg", // Replace with a valid image URL
-  //             size: _height * 0.15,
-  //           ),
-  //   );
-  // }
-  // Widget _profileImageField() {
-  //   // File? _file;
-  //   return GestureDetector(
-  //     onTap: () async {
-  //       final _file =
-  //           await GetIt.instance.get<MediaService>().pickImageFromLibrary();
-  //       if (_file != null) {
-  //         setState(() {
-  //           _profileImage = File(_file!.path);
-  //         });
-  //       }
-  //     },
-  //     child: _profileImage != null
-  //         ? RoundedImagefile(
-  //             key: UniqueKey(),
-  //             image: _profileImage,
-  //             size: _height * 0.15,
-  //           )
-  //         : RoundedImageNetwork(
-  //             key: UniqueKey(),
-  //             imagePath:
-  //                 "https://www.example.com/image.jpg", // Replace with a valid image URL
-  //             size: _height * 0.15,
-  //           ),
-  //   );
-  // }
-
-  // Widget _profileImageField() {
-  //   // File? _file;
-  //   return GestureDetector(
-  //     onTap: () {
-  //       GetIt.instance
-  //           .get<MediaService>()
-  //           .pickImageFromLibrary()
-  //           .then((_files) {
-  //         setState(() {
-  //           _profileImage = _files!.first;
-  //         });
-  //       });
-  //     },
-  //     child: _profileImage != null
-  //         ? RoundedImagefile(
-  //             key: UniqueKey(),
-  //             image: _profileImage!,
-  //             size: _height * 0.15,
-  //           )
-  //         : RoundedImageNetwork(
-  //             key: UniqueKey(),
-  //             imagePath:
-  //                 "https://www.example.com/image.jpg", // Replace with a valid image URL
-  //             size: _height * 0.15,
-  //           ),
-  //   );
-  // }
-
-  Widget _profileImageField() {
-    return GestureDetector(
-      onTap: () {
-        GetIt.instance.get<MediaService>().pickImageFromLibrary().then((_file) {
-          setState(() {
-            _profileImage = _file;
-          });
-        });
-      },
-      child: () {
-        if (_profileImage != null) {
-          return RoundedImagefile(
-              key: UniqueKey(), image: _profileImage, size: _height * 0.15);
-        } else {
-          return RoundedImageNetwork(
-              key: UniqueKey(),
-              imagePath:
-                  "https://www.google.com/imgres?imgurl=https%3A%2F%2Fsm.ign.com%2Fign_pk%2Fcover%2Fa%2Favatar-gen%2Favatar-generations_rpge.jpg&tbnid=iK0aSJqa8CD5XM&vet=12ahUKEwiasPPM7fWEAxW8UqQEHRMWCL4QMygUegUIARCaAQ..i&imgrefurl=https%3A%2F%2Fpk.ign.com%2Favatar-generations&docid=Mx1_vtF4lKoIcM&w=1024&h=1024&q=avatar&ved=2ahUKEwiasPPM7fWEAxW8UqQEHRMWCL4QMygUegUIARCaAQ",
-              size: _height * 0.15);
+  Widget _registerButton() {
+    return RoundedButton(
+      name: "Register",
+      height: _deviceHeight * 0.065,
+      width: _deviceWidth * 0.65,
+      onPressed: () async {
+        if (_registerFormKey.currentState!.validate() &&
+            _profileImage != null) {
+          _registerFormKey.currentState!.save();
+          String? _uid = await _auth.registerUserUsingEmailAndPassword(
+              _email!, _password!);
+          String? _imageURL =
+              await _cloudStorage.saveUserImageToStorage(_uid!, _profileImage!);
+          await _db.createUser(_uid, _email!, _name!, _imageURL!);
+          await _auth.logout();
+          await _auth.loginUsingEmailAndPassword(_email!, _password!);
         }
-      }(),
+      },
     );
   }
 }

@@ -3,18 +3,19 @@ import 'package:chat_app/pages/user_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<StatefulWidget> createState() {
+    return _HomePageState();
+  }
 }
 
 class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
-  List<Widget> _pages = [
+  final List<Widget> _pages = [
     ChatsPage(),
     UsersPage(),
   ];
+
   @override
   Widget build(BuildContext context) {
     return _buildUI();
@@ -24,7 +25,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: _pages[_currentPage],
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
         currentIndex: _currentPage,
         onTap: (_index) {
           setState(() {
@@ -33,12 +33,16 @@ class _HomePageState extends State<HomePage> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_sharp),
-            label: 'chat',
+            label: "Chats",
+            icon: Icon(
+              Icons.chat_bubble_sharp,
+            ),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.supervised_user_circle_sharp),
-            label: 'Users',
+            label: "Users",
+            icon: Icon(
+              Icons.supervised_user_circle_sharp,
+            ),
           ),
         ],
       ),

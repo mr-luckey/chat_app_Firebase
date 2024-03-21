@@ -1,112 +1,138 @@
-import 'package:chat_app/Wiget/Custom_listview.dart';
 import 'package:chat_app/Wiget/top_bar.dart';
 import 'package:chat_app/models/chat.dart';
+import 'package:chat_app/models/chat_message.dart';
+import 'package:chat_app/models/chat_user.dart';
+import 'package:chat_app/providers/Auth_provider.dart';
 import 'package:chat_app/providers/chats_page_provide.dart';
+import 'package:chat_app/services/navigation_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/Auth_provider.dart';
+import '../Wiget/Custom_listview.dart';
+import 'chat_page.dart';
 
 class ChatsPage extends StatefulWidget {
-  const ChatsPage({super.key});
-
   @override
-  State<ChatsPage> createState() => _ChatsPageState();
+  State<StatefulWidget> createState() {
+    return _ChatsPageState();
+  }
 }
 
 class _ChatsPageState extends State<ChatsPage> {
-  late double _height;
-  late double _width;
-  late ChatPageProvide _pageProvider;
-  late Authprovider _auth;
+  late double _deviceHeight;
+  late double _deviceWidth;
+
+  late AuthenticationProvider _auth;
+  late NavigationService _navigation;
+  late ChatsPageProvider _pageProvider;
+
   @override
   Widget build(BuildContext context) {
-    _height = MediaQuery.of(context).size.height;
-    _width = MediaQuery.of(context).size.width;
-    _auth = Provider.of<Authprovider>(context);
-    return MultiProvider(providers: [
-      ChangeNotifierProvider<ChatPageProvide>(
-        create: (_) {
-          return ChatPageProvide(_auth);
-        },
-      ),
-    ], child: _buildUI());
+    _deviceHeight = MediaQuery.of(context).size.height;
+    _deviceWidth = MediaQuery.of(context).size.width;
+    _auth = Provider.of<AuthenticationProvider>(context);
+    _navigation = GetIt.instance.get<NavigationService>();
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ChatsPageProvider>(
+          create: (_) => ChatsPageProvider(_auth),
+        ),
+      ],
+      child: _buildUI(),
+    );
   }
 
   Widget _buildUI() {
-    return Builder(builder: (BuildContext _context) {
-      _pageProvider = _context.watch<ChatPageProvide>();
-      return Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: _width * 0.03, vertical: _height * 0.02),
-        height: _height * 0.98,
-        width: _width * 0.97,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Topbar(
-              'chats',
-              primaryAction: IconButton(
-                onPressed: () {
-                  _auth.logout();
-                },
-                icon: Icon(
-                  Icons.logout,
-                  color: Color.fromRGBO(0, 82, 218, 1.0),
+    return Builder(
+      builder: (BuildContext _context) {
+        _pageProvider = _context.watch<ChatsPageProvider>();
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: _deviceWidth * 0.03,
+            vertical: _deviceHeight * 0.02,
+          ),
+          height: _deviceHeight * 0.98,
+          width: _deviceWidth * 0.97,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              TopBar(
+                'Chats',
+                primaryAction: IconButton(
+                  icon: Icon(
+                    Icons.logout,
+                    color: Color.fromRGBO(0, 82, 218, 1.0),
+                  ),
+                  onPressed: () {
+                    _auth.logout();
+                  },
                 ),
               ),
-            ),
-            _chatsList(),
-          ],
-        ),
-      );
-    });
+              _chatsList(),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _chatsList() {
-    List<chat>? _chats = _pageProvider.chats;
-    print("here are chats");
-    print(_chats);
-    return (() {
-      if (_chats != null) {
-        if (_chats.length != 0) {
-          return ListView.builder(
-            itemCount: _chats.length,
-            itemBuilder: (BuildContext _context, int _index) {
-              return _chatTile();
-            },
-          );
+    List<Chat>? _chats = _pageProvider.chats;
+    return Expanded(
+      child: (() {
+        if (_chats != null) {
+          if (_chats.length != 0) {
+            return ListView.builder(
+              itemCount: _chats.length,
+              itemBuilder: (BuildContext _context, int _index) {
+                return _chatTile(
+                  _chats[_index],
+                );
+              },
+            );
+          } else {
+            return Center(
+              child: Text(
+                "No Chats Found.",
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
         } else {
           return Center(
-            child: Text(
-              "No chats",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-              ),
+            child: CircularProgressIndicator(
+              color: Colors.white,
             ),
           );
         }
-      } else {
-        return Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-          ),
-        );
-      }
-    })();
+      })(),
+    );
   }
 
-  Widget _chatTile() {
-    return CustomListView(
-        height: _height * 0.10,
-        title: "Naseer Ahmed",
-        subtitle: "hello naseer ahmed",
-        imagePath: "https://i.pravatar.cc/150?img=3",
-        isActive: true,
-        isActivity: false,
-        onTap: () {});
+  Widget _chatTile(Chat _chat) {
+    List<ChatUser> _recepients = _chat.recepients();
+    bool _isActive = _recepients.any((_d) => _d.wasRecentlyActive());
+    String _subtitleText = "";
+    if (_chat.messages.isNotEmpty) {
+      _subtitleText = _chat.messages.first.type != MessageType.TEXT
+          ? "Media Attachment"
+          : _chat.messages.first.content;
+    }
+    return CustomListViewTileWithActivity(
+      height: _deviceHeight * 0.10,
+      title: _chat.title(),
+      subtitle: _subtitleText,
+      imagePath: _chat.imageURL(),
+      isActive: _isActive,
+      isActivity: _chat.activity,
+      onTap: () {
+        _navigation.navigateToPage(
+          ChatPage(chat: _chat),
+        );
+      },
+    );
   }
 }
