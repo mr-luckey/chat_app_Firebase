@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MediaService {
   MediaService() {}
@@ -11,4 +14,17 @@ class MediaService {
     }
     return null;
   }
+
+
+  Future<XFile?> uploadImage() async {
+    final pickedFile =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+
+      return pickedFile;
+
+    }
+    return null;
+  }
+
 }

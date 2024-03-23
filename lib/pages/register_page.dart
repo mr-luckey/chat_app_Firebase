@@ -83,15 +83,23 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _profileImageField() {
     return GestureDetector(
       onTap: () {
-        GetIt.instance.get<MediaService>().pickImageFromLibrary().then(
-          (_file) {
-            setState(
-              () {
-                _profileImage = _file as File?;
-              },
-            );
-          },
-        );
+
+        GetIt.instance.get<MediaService>().uploadImage().then((_file) {
+          setState(
+                    () {
+                      _profileImage = File(_file!.path);
+                    },
+                  );
+        });
+        // GetIt.instance.get<MediaService>().pickImageFromLibrary().then(
+        //   (_file) {
+        //     setState(
+        //       () {
+        //         _profileImage = _file as File?;
+        //       },
+        //     );
+        //   },
+        // );
       },
       child: () {
         if (_profileImage != null) {
@@ -165,10 +173,10 @@ class _RegisterPageState extends State<RegisterPage> {
             _profileImage != null) {
           _registerFormKey.currentState!.save();
           String? _uid = await _auth.registerUserUsingEmailAndPassword(
-              _email!, _password!);
+              _email!, _password!) ?? "";
           String? _imageURL =
-              await _cloudStorage.saveUserImageToStorage(_uid!, _profileImage!);
-          await _db.createUser(_uid, _email!, _name!, _imageURL!);
+              await _cloudStorage.saveUserImageToStorage(_uid, _profileImage!) ?? "https://i.pravatar.cc/150?img=6";
+          await _db.createUser(_uid, _email!, _name!, _imageURL);
           await _auth.logout();
           await _auth.loginUsingEmailAndPassword(_email!, _password!);
         }

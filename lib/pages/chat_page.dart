@@ -1,6 +1,7 @@
 import 'package:chat_app/Wiget/Custom_listview.dart';
 import 'package:chat_app/models/chat_message.dart';
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
 import 'package:provider/provider.dart';
 
 import '../Wiget/custom_text_field.dart';
@@ -57,6 +58,8 @@ class _ChatPageState extends State<ChatPage> {
     return Builder(
       builder: (BuildContext _context) {
         _pageProvider = _context.watch<ChatPageProvider>();
+
+
         return Scaffold(
           body: SingleChildScrollView(
             child: Container(
