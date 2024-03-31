@@ -59,7 +59,6 @@ class _ChatPageState extends State<ChatPage> {
       builder: (BuildContext _context) {
         _pageProvider = _context.watch<ChatPageProvider>();
 
-
         return Scaffold(
           body: SingleChildScrollView(
             child: Container(
